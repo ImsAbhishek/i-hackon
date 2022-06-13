@@ -1,17 +1,19 @@
+global:
+  scrape_interval: 5s
+  external_labels:
+    monitor: 'devopsage-monitor'
 scrape_configs:
-  - job_name: ecs
-    file_sd_configs:
-      - files:
-          - /output/ecs_file_sd.yml
-        refresh_interval: 1m
-  - job_name: ec2_aws_node_exporter_discovery
+  - job_name: 'prometheus'
+    static_configs:
+    - targets: ['localhost:9090'] ## IP Address of the localhost
+  - job_name: 'ec2_aws_node_exporter_discovery'
     ec2_sd_configs:
       - port: 9100 # referred to nodeExporter exposed port
         role_arn: arn:aws:iam::624997202235:role/ecsInstanceRole
         filters:
         - name: tag:aws:autoscaling:groupName
           values:
-          - EC2ContainerService-prod-EcsInstanceAsg-IJEG7HNWENR3
+          - EC2ContainerService-Prometheus-poc-EcsInstanceAsg-1MQBS8VWA8JQ5
   - job_name: ecs_CAdvisor
     ec2_sd_configs:
       - port: 9200 # referred to cAdvisor exposed port
@@ -19,7 +21,12 @@ scrape_configs:
         filters:
         - name: tag:aws:autoscaling:groupName
           values:
-          - EC2ContainerService-prod-EcsInstanceAsg-IJEG7HNWENR3
-relabel_configs:
-  - source_labels: [__meta_ec2_instance_id]
-    target_label: instance_id
+          - EC2ContainerService-Prometheus-poc-EcsInstanceAsg-1MQBS8VWA8JQ5
+  - job_name: app
+    file_sd_configs:
+      - files:
+          - /mnt/efs/data/ecs_file_sd.yml
+        refresh_interval: 1m
+
+
+      
